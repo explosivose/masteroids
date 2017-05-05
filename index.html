@@ -39,7 +39,7 @@ var ARROW = Object.freeze({
 
 /* player object */
 var player;
-var asteroid;
+var score = 0;
 
 /* Entity array */
 var ents = [];
@@ -75,10 +75,17 @@ var game = {
 
 /* Entry point */
 function startGame() {
-  player = new entity(10, 120, 30, 30, "white");
+  player = new entity(10, 120, 20, 20, "white"); // id=1
   player.drag = 0.01; player.acc = 0.1;
+  collectable = new entity(0, 0, 10, 10, "yellow"); // id=2
   asteroidSpawner(10);
+  spawnCollectable();
   game.start();
+}
+
+function spawnCollectable() {
+  collectable.x = Math.random() * game.canvas.width;
+  collectable.y = Math.random() * game.canvas.height;
 }
 
 function asteroidSpawner(count) {
@@ -121,6 +128,12 @@ class entity {
     this.vy -= Math.sign(this.vy) * (this.drag * this.vy * this.vy);
     this.x += this.vx;
     this.y += this.vy;
+    if (this.left < 0 || this.right > game.canvas.width) {
+      this.vx = - this.vx;
+    }
+    if (this.top < 0 || this.bottom > game.canvas.height) {
+      this.vy = - this.vy;
+    }
   }
   get left() {
     return this.x;
@@ -156,18 +169,22 @@ function updateGame() {
   for(var i = 0; i < ents.length; i++) {
     ents[i].update();
     if (ents[i].hasCollided(player)) {
-      game.stop();
+      if (ents[i].id == 2) {
+        spawnCollectable();
+        score++;
+      } else  {
+        game.stop();
+        alert("Game Over! Your score: " + score);
+      }
     }
   }
 
   var playerStats = "X:" + player.top + ",Y:" + player.bottom;
   playerStats += "<br>vX:" + player.left + ",vY:" + player.right + ",ID:" + player.id;
-//  var asterStats = "X:" + asteroid.top + ",Y:" + asteroid.bottom;
-//  asterStats += "<br>vX:" + asteroid.left + ",vY:" + asteroid.right + ",ID:" + asteroid.id;
-//  asterStats += "<br>COL:" + asteroid.hasCollided(player) + "," + player.hasCollided(asteroid);
-  document.getElementById("player").innerHTML = playerStats;
+//  document.getElementById("player").innerHTML = playerStats;
 //  document.getElementById("object").innerHTML = asterStats;
-  document.getElementById("stopped").innerHTML = "stopped: " + game.stopped;
+//  document.getElementById("stopped").innerHTML = "stopped: " + game.stopped;
+  document.getElementById("score").innerHTML = "Your score: " + score;
 }
 
 /* Handle player inputs */
@@ -185,9 +202,14 @@ function playerInput() {
 }
 
 </script>
+<div id="score"></div>
 <div id="player"></div>
 <div id="stopped"></div>
 <div id="object"></div>
+<h3>Avoid red. Collect yellow.</h3>
+<p>This Matt Blickem's first ever HTML5 game!</p>
+<a href="mattblickem.co.uk">mattblickem.co.uk</a>
+
 </body>
 
 </html>
