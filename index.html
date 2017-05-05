@@ -76,8 +76,24 @@ var game = {
 /* Entry point */
 function startGame() {
   player = new entity(10, 120, 30, 30, "white");
-  asteroid = new entity(200, 120, 10, 10, "red");
+  player.drag = 0.01; player.acc = 0.1;
+  asteroidSpawner(10);
   game.start();
+}
+
+function asteroidSpawner(count) {
+  for (i = 0; i < count; i++) {
+    x = Math.random() * game.canvas.width;
+    y = Math.random() * game.canvas.height;
+    maxWidth = 50; minWidth = 5;
+    maxHeight = 50; minHeight = 5;
+    w = Math.floor(Math.random() * (maxWidth - minWidth) + minWidth);
+    h = Math.floor(Math.random() * (maxHeight - minHeight) + minHeight);
+    roid = new entity(x, y, w, h, "red");
+    maxV = 1;
+    roid.vx = (Math.random()-0.5) * maxV;
+    roid.vy = (Math.random()-0.5) * maxV;
+  }
 }
 
 /* Entity class */
@@ -93,13 +109,16 @@ class entity {
     this.vx = 0;
     this.vy = 0;
     this.acc = 0.05;
+    this.drag = 0;
   }
   update() {
-    this.newPos();
+    this.physicsUpdate();
     game.context.fillStyle = this.color;
     game.context.fillRect(this.x, this.y, this.width, this.height);
   }
-  newPos() {
+  physicsUpdate() {
+    this.vx -= Math.sign(this.vx) * (this.drag * this.vx * this.vx);
+    this.vy -= Math.sign(this.vy) * (this.drag * this.vy * this.vy);
     this.x += this.vx;
     this.y += this.vy;
   }
@@ -119,12 +138,12 @@ class entity {
     if (other.id == this.id) {
       return false;
     }
-    var has = true;
-    if ((this.bottom < other.bottom) ||
-        (this.top > other.top) ||
-        (this.right < other.right) ||
-        (this.left > other.left)) {
-      has = false;
+    var has = false;
+    if ((other.left < this.right) &&
+        (other.right > this.left) &&
+        (other.top < this.bottom) &&
+        (other.bottom > this.top)) {
+      has = true;
     }
     return has;
   }
@@ -142,15 +161,18 @@ function updateGame() {
   }
 
   var playerStats = "X:" + player.top + ",Y:" + player.bottom;
-  playerStats += "<br>vX:" + player.left + ",vY:" + player.right;
-  var asterStats = "X:" + asteroid.top + ",Y:" + asteroid.bottom;
-  playerStats += "<br>vX:" + asteroid.left + ",vY:" + asteroid.right;
+  playerStats += "<br>vX:" + player.left + ",vY:" + player.right + ",ID:" + player.id;
+//  var asterStats = "X:" + asteroid.top + ",Y:" + asteroid.bottom;
+//  asterStats += "<br>vX:" + asteroid.left + ",vY:" + asteroid.right + ",ID:" + asteroid.id;
+//  asterStats += "<br>COL:" + asteroid.hasCollided(player) + "," + player.hasCollided(asteroid);
   document.getElementById("player").innerHTML = playerStats;
-  document.getElementById("object").innerHTML = asterStats;
+//  document.getElementById("object").innerHTML = asterStats;
   document.getElementById("stopped").innerHTML = "stopped: " + game.stopped;
 }
 
 /* Handle player inputs */
+// TODO make a derived class (base class entity) for the player
+// TODO improve control, add maxspeed
 // TODO(mdb): Add more methods of input (would love to try this on my phone...)
 // https://www.w3schools.com/graphics/game_controllers.asp
 function playerInput() {
