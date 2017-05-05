@@ -39,6 +39,7 @@ var ARROW = Object.freeze({
 
 /* player object */
 var player;
+var asteroid;
 
 /* Entity array */
 var ents = [];
@@ -46,6 +47,7 @@ var ents = [];
 /* Game object */
 var game = {
   keys : [],
+  stopped : true,
   canvas : document.createElement("canvas"),
   start : function() {
     this.canvas.width = 480;
@@ -60,37 +62,71 @@ var game = {
     window.addEventListener('keyup', function(e) {
       game.keys[e.keyCode] = false;
     })
+    this.stopped = false;
   },
   clear : function() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  },
+  stop : function() {
+    clearInterval(this.interval);
+    this.stopped = true;
   }
 }
 
 /* Entry point */
 function startGame() {
-  player = new entity(10, 120, 30, 30, "red");
+  player = new entity(10, 120, 30, 30, "white");
+  asteroid = new entity(200, 120, 10, 10, "red");
   game.start();
 }
 
 /* Entity class */
-function entity(x, y, width, height, color) {
-  ents.push(this);
-  this.width = width;
-  this.height = height;
-  this.x = x;
-  this.y = y;
-  this.vx = 0;
-  this.vy = 0;
-  this.acc = 0.05;
-  this.update = function() {
-    this.newPos();
-    ctx = game.context;
-    ctx.fillStyle = color;
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+class entity {
+  constructor(x, y, width, height, color) {
+    ents.push(this);
+    this.id = ents.length;
+    this.color = color;
+    this.width = width;
+    this.height = height;
+    this.x = x;
+    this.y = y;
+    this.vx = 0;
+    this.vy = 0;
+    this.acc = 0.05;
   }
-  this.newPos = function() {
+  update() {
+    this.newPos();
+    game.context.fillStyle = this.color;
+    game.context.fillRect(this.x, this.y, this.width, this.height);
+  }
+  newPos() {
     this.x += this.vx;
     this.y += this.vy;
+  }
+  get left() {
+    return this.x;
+  }
+  get right() {
+    return this.x + this.width;
+  }
+  get top() {
+    return this.y;
+  }
+  get bottom() {
+    return this.y + this.height;
+  }
+  hasCollided(other) {
+    if (other.id == this.id) {
+      return false;
+    }
+    var has = true;
+    if ((this.bottom < other.bottom) ||
+        (this.top > other.top) ||
+        (this.right < other.right) ||
+        (this.left > other.left)) {
+      has = false;
+    }
+    return has;
   }
 }
 
@@ -100,11 +136,18 @@ function updateGame() {
   playerInput();
   for(var i = 0; i < ents.length; i++) {
     ents[i].update();
+    if (ents[i].hasCollided(player)) {
+      game.stop();
+    }
   }
-  var playerStats = "X:" + player.x + ",Y:" + player.y;
-  playerStats += "<br>vX:" + player.vx + ",vY:" + player.vy;
-  document.getElementById("player").innerHTML = playerStats;
 
+  var playerStats = "X:" + player.top + ",Y:" + player.bottom;
+  playerStats += "<br>vX:" + player.left + ",vY:" + player.right;
+  var asterStats = "X:" + asteroid.top + ",Y:" + asteroid.bottom;
+  playerStats += "<br>vX:" + asteroid.left + ",vY:" + asteroid.right;
+  document.getElementById("player").innerHTML = playerStats;
+  document.getElementById("object").innerHTML = asterStats;
+  document.getElementById("stopped").innerHTML = "stopped: " + game.stopped;
 }
 
 /* Handle player inputs */
@@ -121,7 +164,8 @@ function playerInput() {
 
 </script>
 <div id="player"></div>
-<div id="keys"></div>
+<div id="stopped"></div>
+<div id="object"></div>
 </body>
 
 </html>
