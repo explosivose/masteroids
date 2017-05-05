@@ -8,12 +8,17 @@
   canvas {
     border: 1px solid #d3d3d3;
     background-color: #111111;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
   }
 </style>
+<link href="../style.css" rel="stylesheet">
 </head>
 
 <!-- Start the game when the page loads -->
 <body onload="startGame()">
+<center>
 <script type="text/javascript">
 
 /*
@@ -90,7 +95,8 @@ function spawnCollectable() {
 
 function asteroidSpawner(count) {
   for (i = 0; i < count; i++) {
-    x = Math.random() * game.canvas.width;
+    minX = 200;
+    x = Math.random() * (game.canvas.width - minX) + minX;
     y = Math.random() * game.canvas.height;
     maxWidth = 50; minWidth = 5;
     maxHeight = 50; minHeight = 5;
@@ -206,10 +212,11 @@ function playerInput() {
 <div id="player"></div>
 <div id="stopped"></div>
 <div id="object"></div>
+</center>
 <h3>Avoid red. Collect yellow.</h3>
-<p>This Matt Blickem's first ever HTML5 game!</p>
+<p>Play with the arrow keys on your keyboard!</p>
+<p>This Matt Blickem's first ever HTML5 game.</p>
 <a href="mattblickem.co.uk">mattblickem.co.uk</a>
-
 </body>
 
 </html>
