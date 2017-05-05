@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Masteroids</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+  canvas {
+    border: 1px solid #d3d3d3;
+    background-color: #111111;
+  }
+</style>
+</head>
+
+<!-- Start the game when the page loads -->
+<body onload="startGame()">
+<script type="text/javascript">
+
+/*
+TODO LIST
+
+* upload redlines 1000, link to https://supercore.itch.io/
+* add asteroids
+* die on hit asteroid
+* die on hit edge (or wrap around)
+* implement shooting
+* make asteroids exploid when shot
+* particle effects for explsions http://www.playfuljs.com/particle-effects-are-easy/
+
+*/
+
+/* enum for keyboard keys */
+var ARROW = Object.freeze({
+  LEFT:   37,
+  UP:     38,
+  RIGHT:  39,
+  DOWN:   40
+});
+
+/* player object */
+var player;
+
+/* Entity array */
+var ents = [];
+
+/* Game object */
+var game = {
+  keys : [],
+  canvas : document.createElement("canvas"),
+  start : function() {
+    this.canvas.width = 480;
+    this.canvas.height = 270;
+    this.context = this.canvas.getContext("2d");
+    document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+    this.interval = setInterval(updateGame, 20);
+    window.addEventListener('keydown', function(e) {
+      game.keys = (game.keys || []);
+      game.keys[e.keyCode] = true;
+    })
+    window.addEventListener('keyup', function(e) {
+      game.keys[e.keyCode] = false;
+    })
+  },
+  clear : function() {
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+}
+
+/* Entry point */
+function startGame() {
+  player = new entity(10, 120, 30, 30, "red");
+  game.start();
+}
+
+/* Entity class */
+function entity(x, y, width, height, color) {
+  ents.push(this);
+  this.width = width;
+  this.height = height;
+  this.x = x;
+  this.y = y;
+  this.vx = 0;
+  this.vy = 0;
+  this.acc = 0.05;
+  this.update = function() {
+    this.newPos();
+    ctx = game.context;
+    ctx.fillStyle = color;
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
+  this.newPos = function() {
+    this.x += this.vx;
+    this.y += this.vy;
+  }
+}
+
+/* Game update loop */
+function updateGame() {
+  game.clear();
+  playerInput();
+  for(var i = 0; i < ents.length; i++) {
+    ents[i].update();
+  }
+  var playerStats = "X:" + player.x + ",Y:" + player.y;
+  playerStats += "<br>vX:" + player.vx + ",vY:" + player.vy;
+  document.getElementById("player").innerHTML = playerStats;
+
+}
+
+/* Handle player inputs */
+// TODO(mdb): Add more methods of input (would love to try this on my phone...)
+// https://www.w3schools.com/graphics/game_controllers.asp
+function playerInput() {
+  if (game.keys) {
+    if (game.keys[ARROW.UP])    player.vy -= player.acc;
+    if (game.keys[ARROW.DOWN])  player.vy += player.acc;
+    if (game.keys[ARROW.LEFT])  player.vx -= player.acc;
+    if (game.keys[ARROW.RIGHT]) player.vx += player.acc;
+  }
+}
+
+</script>
+<div id="player"></div>
+<div id="keys"></div>
+</body>
+
+</html>
